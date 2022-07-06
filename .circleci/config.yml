@@ -92,7 +92,7 @@ jobs:
           name: audit fix
           command: |
             cd frontend
-            npm audit fix
+            npm audit fix --legacy-peer-deps
       - run:
           name: run audit
           command: |
@@ -117,7 +117,7 @@ jobs:
           name: audit fix
           command: |
             cd backend
-            npm audit fix
+            npm audit fix --legacy-peer-deps
       - run:
           name: run audit
           command: |
