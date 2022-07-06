@@ -31,7 +31,7 @@ jobs:
           key: backend-build-{{ checksum "backend/package-lock.json" }}
       - run:
           name: Install typescript globally
-          command: npm install -g typescript
+          command: sudo npm install -g typescript
       - run:
           name: Install dependencies
           command: |
@@ -49,7 +49,7 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
+      # - build-frontend
       - build-backend
       # - test-frontend:
       #     requires: [build-frontend]
