@@ -28,7 +28,15 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: backend-build-{{ checksum "frontend/package-lock.json" }}
+          key: backend-build-{{ checksum "backend/package-lock.json" }}
+      - run:
+          name: Install typescript globally
+          command: npm install -g typescript
+      - run:
+          name: Install dependencies
+          command: |
+            cd backend
+            npm install
       - run:
           name: Back-end build
           command: |
@@ -36,7 +44,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build-{{ checksum "frontend/package-lock.json" }}
+          key: backend-build-{{ checksum "backend/package-lock.json" }}
 
 workflows:
   default:
