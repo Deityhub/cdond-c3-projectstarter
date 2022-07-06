@@ -13,9 +13,9 @@ jobs:
           command: |
             cd frontend
             npm install
-      # - save_cache:
-      #     paths: [frontend/node_modules]
-      #     key: frontend-build
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-build
       - run:
           name: Build front-end
           command: |
