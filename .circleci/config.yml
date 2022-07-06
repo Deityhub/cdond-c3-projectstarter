@@ -42,15 +42,48 @@ jobs:
           paths: [backend/node_modules]
           key: backend-build-{{ checksum "backend/package-lock.json" }}
 
+  test-frontend:
+    docker:
+      - image: cimg/node:16.13.2
+    steps:
+      - checkout
+      - restore_cache:
+          keys: 
+            - frontend-build-{{ checksum "frontend/package-lock.json" }}
+            - frontend-build-
+      - run:
+          name: Run frontend test
+          command: |
+            cd frontend
+            npm install
+            npm run test
+
+  test-backend:
+    docker:
+      - image: cimg/node:16.13.2
+    steps:
+      - checkout
+      - restore_cache:
+          keys: 
+            - backend-build-{{ checksum "backend/package-lock.json" }}
+            - backend-build-
+      - run:
+          name: Run backend test
+          command: |
+            cd backend
+            npm install
+            npm run test            
+
+
 workflows:
   default:
     jobs:
       - build-frontend
       - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
       # - scan-backend:
       #     requires: [build-backend]
       # - scan-frontend:
