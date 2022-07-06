@@ -2,25 +2,25 @@ version: 2.1
 
 jobs:
   build-frontend:
-    working_directory: ~/frontend
     docker:
       - image: cimg/node:16.13.2
     steps:
       - checkout
-      - run:
-          name: Update npm
-          command: sudo npm install -g npm
       # - restore_cache:
       #     key: frontend-build
       - run:
           name: Install dependencies
-          command: npm install
+          command: |
+            cd frontend
+            npm install
       # - save_cache:
-      #     paths: [./node_modules]
+      #     paths: [frontend/node_modules]
       #     key: frontend-build
       - run:
           name: Build front-end
-          command: npm run build
+          command: |
+            cd frontend
+            npm run build
 
   build-backend:
     docker:
