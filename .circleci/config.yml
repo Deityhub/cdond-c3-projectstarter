@@ -82,13 +82,12 @@ jobs:
       - restore_cache:
           keys:
             - frontend-build-{{ checksum "frontend/package-lock.json" }}
-            - frontend-build-
+            # - frontend-build-
       - run:
           name: Scan frontend
           command: |
             cd frontend
             npm install
-            npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
   
@@ -100,13 +99,12 @@ jobs:
       - restore_cache:
           keys:
             - backend-build-{{ checksum "backend/package-lock.json" }}
-            - backend-build-
+            # - backend-build-
       - run:
           name: Scan backend
           command: |
             cd backend
             npm install
-            npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
 
