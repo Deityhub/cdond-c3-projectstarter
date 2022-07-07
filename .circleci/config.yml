@@ -109,16 +109,12 @@ jobs:
             - frontend-build-{{ checksum "frontend/package-lock.json" }}
             - frontend-build-
       - run:
-          name: audit fix
+          name: Scan frontend
           command: |
             cd frontend
             npm install
-            npm audit fix --force
-      - run:
-          name: run audit
-          command: |
-            cd frontend
-            npm audit --audit-level=critical
+            # npm audit fix
+            # npm audit --audit-level=critical
       - slack/notify:
           event: fail
           mentions: "@here"
@@ -134,16 +130,12 @@ jobs:
             - backend-build-{{ checksum "backend/package-lock.json" }}
             - backend-build-
       - run:
-          name: audit fix
-          command: |
-            cd backend
-            npm install
-            npm audit fix --force
-      - run:
           name: run audit
           command: |
             cd backend
-            npm audit --audit-level=critical
+            npm install
+            # npm audit fix
+            # npm audit --audit-level=critical
       - slack/notify:
           event: fail
           mentions: "@here"
