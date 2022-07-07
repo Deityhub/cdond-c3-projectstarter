@@ -22,6 +22,10 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build-{{ checksum "frontend/package-lock.json" }}
+      - slack/notify:
+          event: fail
+          mentions: "@here"
+          template: basic_fail_1
 
   build-backend:
     docker:
@@ -44,6 +48,10 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build-{{ checksum "backend/package-lock.json" }}
+      - slack/notify:
+          event: fail
+          mentions: "@here"
+          template: basic_fail_1
 
   test-frontend:
     docker:
@@ -97,6 +105,10 @@ jobs:
           command: |
             cd frontend
             npm audit --audit-level=critical
+      - slack/notify:
+          event: fail
+          mentions: "@here"
+          template: basic_fail_1
 
   scan-backend:
     docker:
@@ -126,17 +138,20 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
+      - build-frontend:
+          context: udapeople
+      - build-backend:
+          context: udapeople
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
       - scan-backend:
           context: udapeople
-          # requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+          requires: [build-backend]
+      - scan-frontend:
+          context: udapeople
+          requires: [build-frontend]
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       #     filters:
