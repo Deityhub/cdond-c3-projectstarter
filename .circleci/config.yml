@@ -16,6 +16,23 @@ commands:
           command: |
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.ID >>
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.ID >>
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      ID:
+        type: string     
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl --insecure  https://kvdb.io/NAELf4X3vHsDfWsdbmpebT/migration_<< parameters.circle_workflow_id >>)
+            if (( $SUCCESS == 1 ));
+            then
+              cd ~/project/backend
+              npm install
+              npm run migrations:revert
+            fi 
 
 jobs:
   build-frontend:
@@ -159,7 +176,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - '2d:cd:98:b2:82:f6:c0:50:3a:9a:48:14:a1:89:d4:b5'
+            - "2d:cd:98:b2:82:f6:c0:50:3a:9a:48:14:a1:89:d4:b5"
       - attach_workspace:
           at: ~/
       - run:
@@ -173,6 +190,34 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
+          ID: ${CIRCLE_WORKFLOW_ID:0:7}
+
+  run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Run migrations
+          command: |
+            cd backend
+            npm install
+            npm run migrations > migrations_dump.txt
+            cat migrations_dump.txt
+      - run:
+          name: Send migration results to kvdb
+          command: |
+            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            then
+                curl https://kvdb.io/NAELf4X3vHsDfWsdbmpebT/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+            fi
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build
+      # Here's where you will add some code to rollback on failure
+      - revert-migrations:
           ID: ${CIRCLE_WORKFLOW_ID:0:7}
 
 workflows:
@@ -199,8 +244,8 @@ workflows:
               only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
