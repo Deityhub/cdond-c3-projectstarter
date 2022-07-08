@@ -200,6 +200,10 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
+          name: Install deps
+          command: |
+            apk add --update tar gzip curl
+      - run:
           name: Run migrations
           command: |
             cd backend
