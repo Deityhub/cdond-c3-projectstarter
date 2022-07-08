@@ -20,39 +20,28 @@ commands:
 jobs:
   build-frontend:
     docker:
-      - image: cimg/node:16.13.2
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - frontend-build-{{ checksum "frontend/package-lock.json" }}
-            - frontend-build-
+          keys: [frontend-build]
       - run:
-          name: Build frontend
+          name: Build front-end
           command: |
             cd frontend
             npm install
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build-{{ checksum "frontend/package-lock.json" }}
-      - slack/notify:
-          event: fail
-          mentions: "@here"
-          template: basic_fail_1
+          key: frontend-build
 
   build-backend:
     docker:
-      - image: cimg/node:16.13.2
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - backend-build-{{ checksum "backend/package-lock.json" }}
-            - backend-build-
-      - run:
-          name: Install typescript globally
-          command: sudo npm install -g typescript
+          keys: [backend-build]
       - run:
           name: Back-end build
           command: |
@@ -61,23 +50,17 @@ jobs:
             npm run build
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build-{{ checksum "backend/package-lock.json" }}
-      - slack/notify:
-          event: fail
-          mentions: "@here"
-          template: basic_fail_1
+          key: backend-build
 
   test-frontend:
     docker:
-      - image: cimg/node:16.13.2
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - frontend-build-{{ checksum "frontend/package-lock.json" }}
-            - frontend-build-
+          keys: [frontend-build]
       - run:
-          name: Run frontend test
+          name: Test frontend
           command: |
             cd frontend
             npm install
@@ -85,15 +68,13 @@ jobs:
 
   test-backend:
     docker:
-      - image: cimg/node:16.13.2
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - backend-build-{{ checksum "backend/package-lock.json" }}
-            - backend-build-
+          keys: [backend-build]
       - run:
-          name: Run backend test
+          name: Test backend
           command: |
             cd backend
             npm install
@@ -101,41 +82,36 @@ jobs:
 
   scan-frontend:
     docker:
-      - image: cimg/node:16.13.2
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - frontend-build-{{ checksum "frontend/package-lock.json" }}
-            - frontend-build-
+          keys: [frontend-build]
       - run:
-          name: Scan frontend
+          name: Analyse frontend
           command: |
             cd frontend
             npm install
-            # npm audit fix
-            # npm audit --audit-level=critical
-      - slack/notify:
-          event: fail
-          mentions: "@here"
-          template: basic_fail_1
+            npm audit fix --audit-level=critical --force
+            npm audit --audit-level=critical
 
   scan-backend:
     docker:
-      - image: cimg/node:16.13.2
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - backend-build-{{ checksum "backend/package-lock.json" }}
-            - backend-build-
+          keys: [backend-build]
       - run:
-          name: run audit
+          name: Analyse backend
           command: |
             cd backend
             npm install
-            # npm audit fix
-            # npm audit --audit-level=critical
+            # npm update mkdirp --depth 6
+            # npm install --save-dev webpack@5.73.0
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm audit --audit-level=critical
       - slack/notify:
           event: fail
           mentions: "@here"
@@ -170,6 +146,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --output text >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -177,30 +154,53 @@ jobs:
       - destroy-environment:
           ID: ${CIRCLE_WORKFLOW_ID:0:7}
 
+  configure-infrastructure:
+    docker:
+      - image: python:3.10-alpine3.16
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - '2d:cd:98:b2:82:f6:c0:50:3a:9a:48:14:a1:89:d4:b5'
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update --no-cache tar gzip ansible aws-cli
+            aws --version
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy-environment:
+          ID: ${CIRCLE_WORKFLOW_ID:0:7}
+
 workflows:
   default:
     jobs:
-      # - build-frontend:
-      #     context: udapeople
-      # - build-backend:
-      #     context: udapeople
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     context: udapeople
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     context: udapeople
-      #     requires: [build-frontend]
+      - build-frontend:
+          context: udapeople
+      - build-backend:
+          context: udapeople
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          context: udapeople
+          requires: [build-backend]
+      - scan-frontend:
+          context: udapeople
+          requires: [build-frontend]
       - deploy-infrastructure:
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
               only: [master]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
