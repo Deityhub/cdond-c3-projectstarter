@@ -1,0 +1,9 @@
+GITHUB URL = https://github.com/Deityhub/cdond-c3-projectstarter
+
+S3 BUCKET URL = http://udapeople-d3b7d5b.s3-website-us-east-1.amazonaws.com/
+
+CLOUDFRONT URL = https://d1vyxpjnrxwd23.cloudfront.net
+
+BACKEND EC2 URL = http://18.233.164.27:3030/api/status
+
+PROMETHEUS URL = ec2-52-91-203-183.compute-1.amazonaws.com
