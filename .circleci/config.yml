@@ -203,15 +203,7 @@ jobs:
       - run:
           name: Install deps
           command: |
-            apk add --update --no-cache tar gzip npm curl
-      - run:
-          name: Install node 13.8.0
-          command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-            source ~/.profile
-            nvm -v
-            nvm install 13.8.0
-            node -v
+            apk add --update --no-cache tar gzip nodejs npm curl
       - restore_cache:
           keys: [backend-build]
       - run:
@@ -247,17 +239,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update tar gzip curl openssh-client
+            apk add --update tar gzip curl nodejs npm openssh-client
             pip install awscli
             aws --version
-      - run:
-          name: Install node 13.8.0
-          command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-            source ~/.profile
-            nvm -v
-            nvm install 13.8.0
-            node -v
       - run:
           name: Get backend url
           command: |
@@ -298,17 +282,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible tar gzip curl openssh-client
+            apk add --update ansible tar gzip curl nodejs npm openssh-client
             pip install awscli
             aws --version
-      - run:
-          name: Install node 13.8.0
-          command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-            source ~/.profile
-            nvm -v
-            nvm install 13.8.0
-            node -v
       - run:
           name: Deploy backend
           command: |     
