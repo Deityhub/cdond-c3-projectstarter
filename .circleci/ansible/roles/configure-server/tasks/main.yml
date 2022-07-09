@@ -9,21 +9,12 @@
   apt:
     autoremove: yes
 
-- name: "Install nvm and setup node version 13.8.0"
+- name: "install dependencies."
   become: true
-  shell: |
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-    source ~/.profile
-    nvm -v
-    nvm install 13.8.0
-    node -v
-
-# - name: "install dependencies."
-#   become: true
-#   apt:
-#     name: ["nodejs", "npm"]
-#     state: 13.8.0
-#     update_cache: yes
+  apt:
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
 
 - name: "install pm2"
   become: true
