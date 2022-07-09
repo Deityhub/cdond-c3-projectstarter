@@ -208,6 +208,7 @@ jobs:
           name: Install node 13.8.0
           command: |
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+            source ~/.profile
             nvm -v
             nvm install 13.8.0
             node -v
@@ -253,6 +254,7 @@ jobs:
           name: Install node 13.8.0
           command: |
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+            source ~/.profile
             nvm -v
             nvm install 13.8.0
             node -v
@@ -303,6 +305,7 @@ jobs:
           name: Install node 13.8.0
           command: |
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+            source ~/.profile
             nvm -v
             nvm install 13.8.0
             node -v
